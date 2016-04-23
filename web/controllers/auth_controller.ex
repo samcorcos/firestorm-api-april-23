@@ -3,7 +3,7 @@ defmodule Firestorm.AuthController do
   plug Ueberauth
   plug Guardian.Plug.EnsureAuthenticated, [handler: AuthController] when action in [:delete, :me]
 
-  alias Firestorm.{ErrorView, UserView}
+  alias Firestorm.{ErrorView, UserView, User}
 
   def me(conn, _params) do
     user = Guardian.Plug.current_resource(conn)
@@ -14,6 +14,9 @@ defmodule Firestorm.AuthController do
     result = with {:ok, user} <- user_from_auth(auth),
                   :ok <- validate_pass(user.encrypted_password, auth.credentials.other.password),
                   do: signin_user(conn, user)
+
+    #    IO.puts result
+    # => %{"identity" => "identity", "user" => %{"password" => "[FILTERED]"}}
 
     case result do
       {:ok, user, token} ->
